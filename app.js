@@ -149,19 +149,70 @@ const getCellLocation = (cell) => {
   classList = getClassListArray(cell);
   const rowClass = classList.find((classname) => classname.includes("row"));
   const colClass = classList.find((classname) => classname.includes("col"));
-  if (rowClass.search(/[0-9]/ != -1)) {
-    console.log(rowClass[4]);
+  let rowIndex = parseInt(rowClass[4], 10);
+  let colIndex = parseInt(colClass[4], 10);
+  if (isNaN(rowIndex)) {
+    rowIndex = -1;
   }
-  console.log(rowClass, colClass);
+  return [rowIndex, colIndex];
 };
+
+const clearCell = (cell) => {
+  cell.classList.remove("yellow");
+  cell.classList.remove("red");
+};
+
+const getFirstOpenCellFromColumn = (colIndex) => {
+  const col = columns[colIndex];
+  for (let row = 0; row <= 5; row++) {
+    if (
+      !col[row].classList.contains("yellow") &&
+      !col[row].classList.contains("red")
+    ) {
+      return col[row];
+    }
+  }
+  return -1;
+};
+
+const togglePlayer = () => {
+  yellowIsNext = yellowIsNext ? false : true;
+};
+
 //event handlers
 const handleCellMouseOver = (e) => {
   const cell = e.target;
-  const row = getCellLocation(cell);
+  const [rowIndex, colIndex] = getCellLocation(cell);
+
+  const topcell = topRow[colIndex];
+  topcell.classList.add(yellowIsNext ? "yellow" : "red");
+};
+
+const handleCellMouseOut = (e) => {
+  const cell = e.target;
+  const [rowIndex, colIndex] = getCellLocation(cell);
+
+  const topcell = topRow[colIndex];
+  clearCell(topcell);
+};
+
+const handleCellClick = (e) => {
+  const cell = e.target;
+  const [rowIndex, colIndex] = getCellLocation(cell);
+  openCell = getFirstOpenCellFromColumn(colIndex);
+  if (openCell !== -1) {
+    openCell.classList.add(yellowIsNext ? "yellow" : "red");
+    togglePlayer();
+    const topcell = topRow[colIndex];
+    clearCell(topcell);
+    handleCellMouseOver(e);
+  }
 };
 //adding event listeners
 for (const row of rows) {
   for (const cell of row) {
     cell.addEventListener("mouseover", handleCellMouseOver);
+    cell.addEventListener("mouseout", handleCellMouseOut);
+    cell.addEventListener("click", handleCellClick);
   }
 }
