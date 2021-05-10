@@ -156,10 +156,11 @@ const getCellLocation = (cell) => {
   }
   return [rowIndex, colIndex];
 };
-
+//clears the color of a given cell
 const clearCell = (cell) => {
   cell.classList.remove("yellow");
   cell.classList.remove("red");
+  cell.classList.remove("win");
 };
 
 const getFirstOpenCellFromColumn = (colIndex) => {
@@ -172,15 +173,102 @@ const getFirstOpenCellFromColumn = (colIndex) => {
       return col[row];
     }
   }
-  return -1;
+  return null;
 };
 
 const togglePlayer = () => {
-  yellowIsNext = yellowIsNext ? false : true;
+  yellowIsNext = !yellowIsNext;
+};
+
+const checkWinningCells = (winningCells) => {
+  if (winningCells.length < 4) return;
+  islive = false;
+  for (const winningcell of winningCells) {
+    winningcell.classList.add("win");
+  }
+  statusSpan.textContent = `${yellowIsNext ? "yellow" : "red"} has won`;
+};
+
+const checkGameStatus = (cell) => {
+  const color = getColorOfCell(cell);
+  if (!color) return;
+  const [rowIndex, colIndex] = getCellLocation(cell);
+  checkHorizontally(cell, color, rowIndex, colIndex);
+  checkVertically(cell, color, rowIndex, colIndex);
+  // TODO: check diagnaliy
+  let winningCells = [cell];
+  //checking up-right
+  for (let i = colIndex + 1, j = rowIndex - 1; i <= 6 && j >= 0; i++, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  //checking down-left of the given cell
+  for (let i = colIndex - 1, j = rowIndex + 1; i >= 0 && j <= 5; i--, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+  //reseting and checking up-left
+  winningCells = [cell];
+  for (let i = colIndex - 1, j = rowIndex - 1; i >= 0 && j >= 0; i--, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  // checking down-right
+  for (let i = colIndex + 1, j = rowIndex + 1; i >= 0 && j <= 5; i++, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+};
+
+const checkHorizontally = (cell, color, rowIndex, colIndex) => {
+  let winningCells = [cell];
+  let rowToCheck = rows[rowIndex];
+  //checking right of the given cell
+  for (
+    let i = colIndex + 1;
+    i < rowToCheck.length && winningCells.length < 4;
+    i++
+  ) {
+    const cellToCheck = rowToCheck[i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  //checking left of the given cell
+  for (let i = colIndex - 1; i >= 0 && winningCells.length < 4; i--) {
+    const cellToCheck = rowToCheck[i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+};
+
+const checkVertically = (cell, color, rowIndex, colIndex) => {
+  let winningCells = [cell];
+  //checking below the given cell
+  for (let i = rowIndex + 1; i <= 5; i++) {
+    const cellToCheck = rows[i][colIndex];
+    if (getColorOfCell(cellToCheck) !== color || i === 6) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+};
+
+const getColorOfCell = (cell) => {
+  const classList = getClassListArray(cell);
+  if (classList.includes("yellow")) return "yellow";
+  if (classList.includes("red")) return "red";
+  return null;
 };
 
 //event handlers
 const handleCellMouseOver = (e) => {
+  if (!islive) return;
   const cell = e.target;
   const [rowIndex, colIndex] = getCellLocation(cell);
 
@@ -189,6 +277,7 @@ const handleCellMouseOver = (e) => {
 };
 
 const handleCellMouseOut = (e) => {
+  if (!islive) return;
   const cell = e.target;
   const [rowIndex, colIndex] = getCellLocation(cell);
 
@@ -197,17 +286,22 @@ const handleCellMouseOut = (e) => {
 };
 
 const handleCellClick = (e) => {
+  if (!islive) return;
   const cell = e.target;
   const [rowIndex, colIndex] = getCellLocation(cell);
   openCell = getFirstOpenCellFromColumn(colIndex);
-  if (openCell !== -1) {
+  if (openCell) {
     openCell.classList.add(yellowIsNext ? "yellow" : "red");
+    checkGameStatus(openCell);
     togglePlayer();
     const topcell = topRow[colIndex];
     clearCell(topcell);
     handleCellMouseOver(e);
+  } else {
+    alert("column is full");
   }
 };
+
 //adding event listeners
 for (const row of rows) {
   for (const cell of row) {
@@ -216,3 +310,13 @@ for (const row of rows) {
     cell.addEventListener("click", handleCellClick);
   }
 }
+resetButton.addEventListener("click", function () {
+  for (const row of rows) {
+    for (const cell of row) {
+      clearCell(cell);
+    }
+  }
+  islive = true;
+  yellowIsNext = true;
+  statusSpan.textContent = "";
+});
