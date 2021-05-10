@@ -195,35 +195,7 @@ const checkGameStatus = (cell) => {
   const [rowIndex, colIndex] = getCellLocation(cell);
   checkHorizontally(cell, color, rowIndex, colIndex);
   checkVertically(cell, color, rowIndex, colIndex);
-  // TODO: check diagnaliy
-  let winningCells = [cell];
-  //checking up-right
-  for (let i = colIndex + 1, j = rowIndex - 1; i <= 6 && j >= 0; i++, j--) {
-    const cellToCheck = rows[j][i];
-    if (getColorOfCell(cellToCheck) !== color) break;
-    winningCells.push(cellToCheck);
-  }
-  //checking down-left of the given cell
-  for (let i = colIndex - 1, j = rowIndex + 1; i >= 0 && j <= 5; i--, j++) {
-    const cellToCheck = rows[j][i];
-    if (getColorOfCell(cellToCheck) !== color) break;
-    winningCells.push(cellToCheck);
-  }
-  checkWinningCells(winningCells);
-  //reseting and checking up-left
-  winningCells = [cell];
-  for (let i = colIndex - 1, j = rowIndex - 1; i >= 0 && j >= 0; i--, j--) {
-    const cellToCheck = rows[j][i];
-    if (getColorOfCell(cellToCheck) !== color) break;
-    winningCells.push(cellToCheck);
-  }
-  // checking down-right
-  for (let i = colIndex + 1, j = rowIndex + 1; i >= 0 && j <= 5; i++, j++) {
-    const cellToCheck = rows[j][i];
-    if (getColorOfCell(cellToCheck) !== color) break;
-    winningCells.push(cellToCheck);
-  }
-  checkWinningCells(winningCells);
+  checkDiagonally(cell, color, rowIndex, colIndex);
 };
 
 const checkHorizontally = (cell, color, rowIndex, colIndex) => {
@@ -254,6 +226,37 @@ const checkVertically = (cell, color, rowIndex, colIndex) => {
   for (let i = rowIndex + 1; i <= 5; i++) {
     const cellToCheck = rows[i][colIndex];
     if (getColorOfCell(cellToCheck) !== color || i === 6) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+};
+
+const checkDiagonally = (cell, color, rowIndex, colIndex) => {
+  let winningCells = [cell];
+  //checking up-right
+  for (let i = colIndex + 1, j = rowIndex - 1; i <= 6 && j >= 0; i++, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  //checking down-left of the given cell
+  for (let i = colIndex - 1, j = rowIndex + 1; i >= 0 && j <= 5; i--, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  checkWinningCells(winningCells);
+  //reseting and checking up-left
+  winningCells = [cell];
+  for (let i = colIndex - 1, j = rowIndex - 1; i >= 0 && j >= 0; i--, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  // checking down-right
+  for (let i = colIndex + 1, j = rowIndex + 1; i >= 0 && j <= 5; i++, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
     winningCells.push(cellToCheck);
   }
   checkWinningCells(winningCells);
