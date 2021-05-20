@@ -107,6 +107,32 @@ h1 {
   background-color: #4d7ef1;
 }
 
+.AI {
+  background-color: rgb(184, 189, 196);
+  border-radius: 5px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 15px 30px;
+  text-transform: uppercase;
+}
+
+.AI:active {
+  background-color: #4d7ef1;
+}
+
+.on {
+  background-color: rgb(72, 145, 255);
+}
+
+.AIstatus {
+  display: block;
+  font-size: 20px;
+}
+
 .status {
   display: block;
   font-size: 20px;

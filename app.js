@@ -2,6 +2,8 @@
 const allCells = document.querySelectorAll(".cell:not(.row-top)");
 const topCells = document.querySelectorAll(".cell.row-top");
 const resetButton = document.querySelector(".reset");
+const AiButton = document.querySelector(".AI");
+const Aispan = document.querySelector(".AIstatus");
 const statusSpan = document.querySelector(".status");
 
 // columns
@@ -139,6 +141,7 @@ const rows = [row0, row1, row2, row3, row4, row5, topRow];
 //variables
 let islive = true;
 let yellowIsNext = true;
+let ai = false;
 
 //functions
 const getClassListArray = (cell) => {
@@ -269,6 +272,52 @@ const getColorOfCell = (cell) => {
   return null;
 };
 
+const getScore = (cell) => {
+  let yellowScore = 0;
+  let redScore = 0;
+  const [rowIndex, colIndex] = getCellLocation(cell);
+  let winningCells = [];
+  let rowToCheck = rows[rowIndex];
+
+  //checking right of the given cell
+  for (
+    let i = colIndex + 1;
+    i < rowToCheck.length && winningCells.length < 4;
+    i++
+  ) {
+    const cellToCheck = rowToCheck[i];
+    // if (getColorOfCell(cellToCheck) === null) break;
+    if (getColorOfCell(cellToCheck) === "yellow") yellowScore++;
+    else if (getColorOfCell(cellToCheck) === "red") redScore++;
+    if (
+      i + 1 < rowToCheck.length &&
+      getColorOfCell(rowToCheck[i + 1]) === "yellow"
+    ) {
+      winningCells.push(cellToCheck);
+    } else break;
+  }
+  console.log("winning cells");
+  console.log(winningCells);
+  if (winningCells.length >= 4) return 1000;
+  else return yellowScore > redScore ? yellowScore : redScore;
+};
+
+const AImove = () => {
+  if (!ai) return;
+  if (yellowIsNext) return;
+  let moves = [];
+  for (let i = 0; i < topRow.length; i++) {
+    const [rowIndex, colIndex] = getCellLocation(topRow[i]);
+    let cell = getFirstOpenCellFromColumn(colIndex);
+    moves.push(cell);
+  }
+  let scores = [];
+  for (const cell of moves) {
+    scores.push(getScore(cell));
+  }
+  console.log(scores);
+};
+
 //event handlers
 const handleCellMouseOver = (e) => {
   if (!islive) return;
@@ -303,6 +352,7 @@ const handleCellClick = (e) => {
   } else {
     alert("column is full");
   }
+  AImove();
 };
 
 //adding event listeners
@@ -322,4 +372,10 @@ resetButton.addEventListener("click", function () {
   islive = true;
   yellowIsNext = true;
   statusSpan.textContent = "";
+});
+AiButton.addEventListener("click", function () {
+  AiButton.classList.toggle("on");
+  ai = !ai;
+  Aispan.textContent = ai ? "ai is on" : "ai is off";
+  AImove();
 });
