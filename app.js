@@ -196,9 +196,13 @@ const checkGameStatus = (cell) => {
   const color = getColorOfCell(cell);
   if (!color) return;
   const [rowIndex, colIndex] = getCellLocation(cell);
-  checkHorizontally(cell, color, rowIndex, colIndex);
-  checkVertically(cell, color, rowIndex, colIndex);
-  checkDiagonally(cell, color, rowIndex, colIndex);
+  let winningCells;
+  winningCells = checkHorizontally(cell, color, rowIndex, colIndex);
+  checkWinningCells(winningCells);
+  winningCells = checkVertically(cell, color, rowIndex, colIndex);
+  checkWinningCells(winningCells);
+  winningCells = checkDiagonally(cell, color, rowIndex, colIndex);
+  checkWinningCells(winningCells);
 };
 
 const checkHorizontally = (cell, color, rowIndex, colIndex) => {
@@ -220,7 +224,7 @@ const checkHorizontally = (cell, color, rowIndex, colIndex) => {
     if (getColorOfCell(cellToCheck) !== color) break;
     winningCells.push(cellToCheck);
   }
-  checkWinningCells(winningCells);
+  return winningCells;
 };
 
 const checkVertically = (cell, color, rowIndex, colIndex) => {
@@ -231,7 +235,7 @@ const checkVertically = (cell, color, rowIndex, colIndex) => {
     if (getColorOfCell(cellToCheck) !== color || i === 6) break;
     winningCells.push(cellToCheck);
   }
-  checkWinningCells(winningCells);
+  return winningCells;
 };
 
 const checkDiagonally = (cell, color, rowIndex, colIndex) => {
@@ -257,12 +261,12 @@ const checkDiagonally = (cell, color, rowIndex, colIndex) => {
     winningCells.push(cellToCheck);
   }
   // checking down-right
-  for (let i = colIndex + 1, j = rowIndex + 1; i >= 0 && j <= 5; i++, j++) {
+  for (let i = colIndex + 1, j = rowIndex + 1; i <= 6 && j <= 5; i++, j++) {
     const cellToCheck = rows[j][i];
     if (getColorOfCell(cellToCheck) !== color) break;
     winningCells.push(cellToCheck);
   }
-  checkWinningCells(winningCells);
+  return winningCells;
 };
 
 const getColorOfCell = (cell) => {
@@ -272,39 +276,85 @@ const getColorOfCell = (cell) => {
   return null;
 };
 
+const checkDiagonallyAIR = (cell, color, rowIndex, colIndex) => {
+  let winningCells = [cell];
+  //checking up-right
+  for (let i = colIndex + 1, j = rowIndex - 1; i <= 6 && j >= 0; i++, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  //checking down-left of the given cell
+  for (let i = colIndex - 1, j = rowIndex + 1; i >= 0 && j <= 5; i--, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  return winningCells;
+};
+
+const checkDiagonallyAIL = (cell, color, rowIndex, colIndex) => {
+  let winningCells = [cell];
+  for (let i = colIndex - 1, j = rowIndex - 1; i >= 0 && j >= 0; i--, j--) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  // checking down-right
+  for (let i = colIndex + 1, j = rowIndex + 1; i <= 6 && j <= 5; i++, j++) {
+    const cellToCheck = rows[j][i];
+    if (getColorOfCell(cellToCheck) !== color) break;
+    winningCells.push(cellToCheck);
+  }
+  return winningCells;
+};
+
 const getScore = (cell) => {
+  if (cell === null) return -1;
   let yellowScore = 0;
   let redScore = 0;
   const [rowIndex, colIndex] = getCellLocation(cell);
-  let winningCells = [];
-  let rowToCheck = rows[rowIndex];
+  let winningCells;
 
-  //checking right of the given cell
-  for (
-    let i = colIndex + 1;
-    i < rowToCheck.length && winningCells.length < 4;
-    i++
-  ) {
-    const cellToCheck = rowToCheck[i];
-    // if (getColorOfCell(cellToCheck) === null) break;
-    if (getColorOfCell(cellToCheck) === "yellow") yellowScore++;
-    else if (getColorOfCell(cellToCheck) === "red") redScore++;
-    if (
-      i + 1 < rowToCheck.length &&
-      getColorOfCell(rowToCheck[i + 1]) === "yellow"
-    ) {
-      winningCells.push(cellToCheck);
-    } else break;
+  // checking yellow score
+  winningCells = checkHorizontally(cell, "yellow", rowIndex, colIndex);
+  yellowScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkVertically(cell, "yellow", rowIndex, colIndex);
+  yellowScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkDiagonallyAIR(cell, "yellow", rowIndex, colIndex);
+  yellowScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkDiagonallyAIL(cell, "yellow", rowIndex, colIndex);
+  yellowScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+
+  // checking red score
+  winningCells = checkHorizontally(cell, "red", rowIndex, colIndex);
+  redScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkVertically(cell, "red", rowIndex, colIndex);
+  redScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkDiagonallyAIR(cell, "red", rowIndex, colIndex);
+  redScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+  winningCells = checkDiagonallyAIL(cell, "red", rowIndex, colIndex);
+  redScore += winningCells.length > 3 ? 1000 : winningCells.length - 1;
+
+  //return yellowScore > redScore ? yellowScore : redScore;
+  return yellowScore + redScore;
+};
+
+const aiPlay = (cell) => {
+  const [rowIndex, colIndex] = getCellLocation(cell);
+  if (cell) {
+    cell.classList.add("red");
+    checkGameStatus(cell);
+    togglePlayer();
+    const topcell = topRow[colIndex];
+    clearCell(topcell);
+  } else {
+    alert("column is full");
   }
-  console.log("winning cells");
-  console.log(winningCells);
-  if (winningCells.length >= 4) return 1000;
-  else return yellowScore > redScore ? yellowScore : redScore;
 };
 
 const AImove = () => {
-  if (!ai) return;
-  if (yellowIsNext) return;
+  if (!ai || yellowIsNext || !islive) return;
   let moves = [];
   for (let i = 0; i < topRow.length; i++) {
     const [rowIndex, colIndex] = getCellLocation(topRow[i]);
@@ -315,7 +365,20 @@ const AImove = () => {
   for (const cell of moves) {
     scores.push(getScore(cell));
   }
+  for (let i = 0; i <= 6; i++) {
+    scores[i] -= AIfuture(moves[i]);
+  }
   console.log(scores);
+  let max = Math.max(...scores);
+  let move = scores.indexOf(max);
+  aiPlay(moves[move]);
+};
+
+const AIfuture = (cell) => {
+  const [rowIndex, colIndex] = getCellLocation(cell);
+  if (rowIndex <= 0) return 0;
+  if (getScore(rows[rowIndex - 1][colIndex]) >= 1000) return 1000;
+  else return 0;
 };
 
 //event handlers
@@ -349,6 +412,7 @@ const handleCellClick = (e) => {
     const topcell = topRow[colIndex];
     clearCell(topcell);
     handleCellMouseOver(e);
+    if (ai) handleCellMouseOut(e);
   } else {
     alert("column is full");
   }
