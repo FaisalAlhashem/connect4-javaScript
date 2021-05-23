@@ -375,6 +375,7 @@ const AImove = () => {
 };
 
 const AIfuture = (cell) => {
+  if (cell === null) return 0;
   const [rowIndex, colIndex] = getCellLocation(cell);
   if (rowIndex <= 0) return 0;
   if (getScore(rows[rowIndex - 1][colIndex]) >= 1000) return 1000;
@@ -439,6 +440,9 @@ resetButton.addEventListener("click", function () {
 });
 AiButton.addEventListener("click", function () {
   AiButton.classList.toggle("on");
+  AiButton.textContent = AiButton.classList.contains("on")
+    ? "AI mode: ON"
+    : "AI mode: OFF";
   ai = !ai;
   Aispan.textContent = ai ? "ai is on" : "ai is off";
   AImove();
